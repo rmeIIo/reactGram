@@ -26,6 +26,36 @@ const insertPhoto = async (req, res) => {
   res.status(201).json(newPhoto);
 };
 
+const deletePhoto = async (req, res) => {
+  const { id } = req.params;
+
+  const reqUser = req.user;
+
+  try {
+    const photo = await Photo.findById(id);
+
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" });
+    }
+
+    if (!photo.userId.equals(reqUser._id)) {
+      return res.status(422).json({
+        error: "Ocorreu um erro, por favor tente novamente mais tarde.",
+      });
+    }
+
+    await Photo.findByIdAndDelete(photo._id);
+
+    res
+      .status(200)
+      .json({ id: photo._id, message: "Foto excluída com sucesso." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao excluir a foto", details: error.message });
+  }
+};
+
 module.exports = {
   insertPhoto,
+  deletePhoto,
 };
